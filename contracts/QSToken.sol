@@ -123,7 +123,20 @@ contract StandardToken is ERC20, SafeMath {
     /* approve() allowances */
     mapping(address => mapping(address => uint)) allowed;
 
-    function transfer(address _to, uint _value) public returns (bool success) {
+    /**
+     *
+     * Fix for the ERC20 short address attack
+     *
+     * http://vessenes.com/the-erc20-short-address-attack-explained/
+     */
+    modifier onlyPayloadSize(uint size) {
+        if (msg.data.length < size + 4) {
+            revert();
+        }
+        _;
+    }
+
+    function transfer(address _to, uint _value) onlyPayloadSize(2 * 32) public returns (bool success) {
         balances[msg.sender] = safeSub(balances[msg.sender], _value);
         balances[_to] = safeAdd(balances[_to], _value);
         emit Transfer(msg.sender, _to, _value);
@@ -201,87 +214,104 @@ contract StandardToken is ERC20, SafeMath {
 }
 
 /**
- * @title Pausable
- * @dev Base contract which allows children to implement an emergency stop mechanism.
+ * A token that can increase its supply by another contract.
+ *
+ * Only mint agents, contracts whitelisted by owner, can mint new tokens.
+ *
  */
-contract Pausable is Ownable {
-    event Pause();
-    event Unpause();
+contract MintableToken is StandardToken, Ownable {
 
-    bool public paused = false;
-    mapping(address => bool) public transferWhitelisted;
+    /** List of agents that are allowed to create new tokens */
+    mapping(address => bool) public mintAgents;
 
-    function whitelistForTransfer(address who, bool whitelisted) public onlyOwner {
-        transferWhitelisted[who] = whitelisted;
+    event MintingAgentChanged(address addr, bool state);
+
+
+    /**
+     * Create new tokens and allocate them to an address..
+     *
+     * Only callably by a crowdsale contract (mint agent).
+     */
+    function mint(address receiver, uint amount) onlyMintAgent public {
+        totalSupply = safeAdd(totalSupply, amount);
+        balances[receiver] = safeAdd(balances[receiver], amount);
+
+        // This will make the mint transaction apper in EtherScan.io
+        emit Transfer(address(0x0), receiver, amount);
     }
 
 
     /**
-     * @dev Modifier to make a function callable only when the contract is not paused.
+     * Owner can allow a crowdsale contract to mint new tokens.
      */
-    modifier whenNotPaused() {
-        require(!(paused && transferWhitelisted[msg.sender] == false) );
+    function setMintAgent(address addr, bool state) onlyOwner public {
+        mintAgents[addr] = state;
+        emit MintingAgentChanged(addr, state);
+    }
+
+    modifier onlyMintAgent() {
+        // Only crowdsale contracts are allowed to mint new tokens
+        if (!mintAgents[msg.sender]) {
+            revert();
+        }
         _;
     }
 
-    /**
-     * @dev Modifier to make a function callable only when the contract is paused.
-     */
-    modifier whenPaused() {
-        require(paused);
-        _;
-    }
+}
+
+contract BurnableToken is StandardToken {
+
+    /** How many tokens we burned */
+    event Burned(address burner, uint burnedAmount);
 
     /**
-     * @dev called by the owner to pause, triggers stopped state
+     * Burn extra tokens from a balance.
+     *
      */
-    function pause() onlyOwner whenNotPaused public {
-        paused = true;
-        emit Pause();
-    }
-
-    /**
-     * @dev called by the owner to unpause, returns to normal state
-     */
-    function unpause() onlyOwner whenPaused public {
-        paused = false;
-        emit Unpause();
+    function burn(uint burnAmount) public {
+        address burner = msg.sender;
+        balances[burner] = safeSub(balances[burner], burnAmount);
+        totalSupply = safeSub(totalSupply, burnAmount);
+        emit Burned(burner, burnAmount);
     }
 }
 
-/**
- * @title Pausable token
- * @dev StandardToken modified with pausable transfers.
- **/
-contract PausableToken is StandardToken, Pausable {
+contract MetaToken is StandardToken {
 
-    function transfer(address _to, uint256 _value) public whenNotPaused returns (bool) {
-        return super.transfer(_to, _value);
+    mapping(address => uint) metaNonce;
+
+
+//TODO: think about the relayer fee
+//TODO: split the contract in meta, meta token receiver pays/meta token sender pays/ subscription meta token
+    function transferWithProof(address _to, uint256 _value, uint8 v, bytes32 r, bytes32 s)  public returns (bool ok) {
+
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public whenNotPaused returns (bool) {
-        return super.transferFrom(_from, _to, _value);
+    function transferFromWithProof(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s)  public returns (bool ok) {
+
     }
 
-    function approve(address _spender, uint256 _value) public whenNotPaused returns (bool) {
-        return super.approve(_spender, _value);
+    function approveWithProof(address _spender, uint _value, uint8 v, bytes32 r, bytes32 s)  public returns (bool ok) {
+
     }
 
-    function increaseApproval(address _spender, uint _addedValue) public whenNotPaused returns (bool success) {
-        return super.increaseApproval(_spender, _addedValue);
+    function increaseApprovalWithProof(address _spender, uint _addedValue, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
+
     }
 
-    function decreaseApproval(address _spender, uint _subtractedValue) public whenNotPaused returns (bool success) {
-        return super.decreaseApproval(_spender, _subtractedValue);
+    function decreaseApprovalWithProof(address _spender, uint _subtractedValue, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
+
     }
+
+    //TODO: maybe different sections for sender pays and receiver pays fee
+
 }
 
-
-contract QSToken is PausableToken, MintableToken, MetaToken {
+contract QSToken is MintableToken, BurnableToken, MetaToken {
 
     constructor() public {
-        symbol = "";
-        name = "";
+        symbol = "QS";
+        name = "QS";
         decimals = 8;
     }
 
