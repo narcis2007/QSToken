@@ -1,17 +1,15 @@
 pragma solidity ^0.5.0;
 
 import "./IERC20.sol";
-import "./SafeMath.sol";
-
+import "../Math/SafeMath.sol";
 /**
  * Standard ERC20 token with approve() race condition mitigation.
  *
  * Based on code by FirstBlood:
  * https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-contract ERC20Token is IERC20 {
+contract ERC20Token is IERC20, SafeMath {
 
-    using SafeMath for uint;
     string public name;
     string public symbol;
     uint public decimals;
@@ -22,19 +20,20 @@ contract ERC20Token is IERC20 {
     /* approve() allowances */
     mapping(address => mapping(address => uint)) allowed;
 
-
     function transfer(address _to, uint _value) public returns (bool success) {
-        balances[msg.sender] = balances[msg.sender] - _value;
-        balances[_to] = balances[_to] + _value;
-        emit Transfer(msg.sender, _to, _value);
-        return true;
+        return _transfer(msg.sender, _to, _value);
     }
 
     function transferFrom(address _from, address _to, uint _value) public returns (bool success) {
+        uint _allowance = allowed[_from][msg.sender];
+        allowed[_from][msg.sender] = safeSub(_allowance, _value);
 
-        balances[_to] = balances[_to] + _value;
-        balances[_from] = balances[_from] - _value;
-        allowed[_from][msg.sender] = allowed[_from][msg.sender] - _value;
+        return _transfer(_from, _to, _value);
+    }
+
+    function _transfer(address _from, address _to, uint _value) internal returns (bool) {
+        balances[_from] = safeSub(balances[_from], _value);
+        balances[_to] = safeAdd(balances[_to], _value);
         emit Transfer(_from, _to, _value);
         return true;
     }
@@ -71,7 +70,7 @@ contract ERC20Token is IERC20 {
    * @param _addedValue The amount of tokens to increase the allowance by.
    */
     function increaseApproval(address _spender, uint _addedValue) public returns (bool) {
-        allowed[msg.sender][_spender] = allowed[msg.sender][_spender] + _addedValue;
+        allowed[msg.sender][_spender] = safeAdd(allowed[msg.sender][_spender], _addedValue);
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
@@ -91,10 +90,9 @@ contract ERC20Token is IERC20 {
         if (_subtractedValue > oldValue) {
             allowed[msg.sender][_spender] = 0;
         } else {
-            allowed[msg.sender][_spender] = oldValue - _subtractedValue;
+            allowed[msg.sender][_spender] = safeSub(oldValue, _subtractedValue);
         }
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
-
 }

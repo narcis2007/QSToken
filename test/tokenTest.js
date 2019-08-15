@@ -4,12 +4,15 @@ const expectThrow = require('./expectThrow.js')
 const timeTravel = require('./timeTravel');
 const BigNumber = require('bignumber.js')
 var QSToken = artifacts.require("QSToken");
+var EthUtil = require('ethereumjs-util');
+const Web3 = require("web3")
+
+const myWeb3 = new Web3(web3.currentProvider) //Use the latest web3 version not the old one which is injected by default
 
 const NAME = "QS";
 const SYMBOL = "QS";
 var DECIMALS = 8;
 const SUPPLY = 100000000;
-const TOTAL_SUPPLY_WITH_DECIMALS = 0;
 
 
 contract('QSToken', async (accounts) => {
@@ -201,8 +204,8 @@ contract('QSToken', async (accounts) => {
             assert.equal(expectedTotalSupply, final_supply, "Supply after burn do not fit.");
             assert.equal(expectedBalance, final_balance, "Supply after burn do not fit.");
 
-            const event = logs.find(e => e.event === 'Burned');
-            assert.notEqual(event, undefined, "Event Burned not fired!")
+            const event = logs.find(e => e.event === 'Transfer');
+            assert.notEqual(event, undefined, "Event Transfer not fired!")
         });
 
         it('Can not burn more tokens than your balance', async function () {
@@ -225,6 +228,42 @@ contract('QSToken', async (accounts) => {
 
             assert.equal(accounts[1], await token.owner());
 
+        });
+    });
+
+    describe('meta - sender pays', function () {
+
+        it('should be able to relay a transaction', async function () {
+            let token = await deployTokenContract();
+
+            const metaSenderAddress = '0xBd2e9CaF03B81e96eE27AD354c579E1310415F39';
+            const metaSenderPrivateKey = '43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46';
+            const metaSenderBalance = SUPPLY / 2;
+            await token.transfer(metaSenderAddress, metaSenderBalance, {from: accounts[0]});
+            const amountSent = 100;
+            const relayerFee = 10;
+            var metaNonce = 0;
+
+            const messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountSent}, {t: 'uint', v: relayerFee}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            console.log('v: ' + signature.v.toString())
+            console.log('r: 0x' + signature.r.toString('hex'))
+            console.log('s: 0x' + signature.s.toString('hex'))
+
+            await token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), relayerFee);
+            assert.equal(await token.balanceOf(accounts[1]), amountSent);
+            assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - (amountSent + relayerFee));
         });
     });
 

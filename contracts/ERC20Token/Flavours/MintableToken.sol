@@ -1,7 +1,6 @@
 pragma solidity ^0.5.0;
-
-import "./ERC20Token.sol";
-import "./Ownable.sol";
+import "../ERC20Token.sol";
+import "../../Access/Ownable.sol";
 
 
 /**
@@ -24,8 +23,8 @@ contract MintableToken is ERC20Token, Ownable {
      * Only callably by a crowdsale contract (mint agent).
      */
     function mint(address receiver, uint amount) onlyMintAgent public {
-        totalSupply = totalSupply + amount;
-        balances[receiver] = balances[receiver] + amount;
+        totalSupply = safeAdd(totalSupply, amount);
+        balances[receiver] = safeAdd(balances[receiver], amount);
 
         // This will make the mint transaction apper in EtherScan.io
         emit Transfer(address(0x0), receiver, amount);
