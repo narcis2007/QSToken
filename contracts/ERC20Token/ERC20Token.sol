@@ -21,21 +21,24 @@ contract ERC20Token is IERC20, SafeMath {
     mapping(address => mapping(address => uint)) allowed;
 
     function transfer(address _to, uint _value) public returns (bool success) {
-        return _transfer(msg.sender, _to, _value);
+        _transfer(msg.sender, _to, _value);
+
+        return true;
     }
 
     function transferFrom(address _from, address _to, uint _value) public returns (bool success) {
         uint _allowance = allowed[_from][msg.sender];
         allowed[_from][msg.sender] = safeSub(_allowance, _value);
 
-        return _transfer(_from, _to, _value);
+        _transfer(_from, _to, _value);
+
+        return true;
     }
 
     function _transfer(address _from, address _to, uint _value) internal returns (bool) {
         balances[_from] = safeSub(balances[_from], _value);
         balances[_to] = safeAdd(balances[_to], _value);
         emit Transfer(_from, _to, _value);
-        return true;
     }
 
     function balanceOf(address _owner) public view returns (uint balance) {

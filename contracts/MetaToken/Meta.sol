@@ -36,7 +36,10 @@ contract Meta {
 
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(argsEncoded)));
 
-        return ecrecover(hash, v, r, s);
+        address signatureAddress = ecrecover(hash, v, r, s);
+        require(signatureAddress != address(0x0));
+
+        return signatureAddress;
     }
 
 }
