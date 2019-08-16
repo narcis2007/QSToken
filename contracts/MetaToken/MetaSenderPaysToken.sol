@@ -19,9 +19,7 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
         return true;
     }
 
-    //    function transferFromWithProof(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
-    //
-    //    }
+
     //
     //    function approveWithProof(address _spender, uint _value, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
     //
@@ -32,6 +30,9 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
     //    }
     //
     //    function decreaseApprovalWithProof(address _spender, uint _subtractedValue, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
+    //
+    //    }
+    //    function transferFromWithProof(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s) public returns (bool ok) {
     //
     //    }
 
