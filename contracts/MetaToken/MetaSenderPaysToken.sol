@@ -5,7 +5,7 @@ import "./Meta.sol";
 
 contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
 
-    function transferWithProof(address _to, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool ok) {
+    function transferWithProof(address _to, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("transferWithProof", _to, _value, _relayerFee, metaNonce[_metaSender]));
         require(metaSender == _metaSender);
 
@@ -17,7 +17,7 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
         return true;
     }
 
-    function transferFromWithProof(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool ok) {
+    function transferFromWithProof(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("transferFromWithProof", _from, _to, _value, _relayerFee, metaNonce[_metaSender]));
         require(metaSender == _metaSender);
 
@@ -31,7 +31,7 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
         return true;
     }
 
-    function approveWithProof(address _spender, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool ok) {
+    function approveWithProof(address _spender, uint _value, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("approveWithProof", _spender, _value, _relayerFee, metaNonce[_metaSender]));
         require(metaSender == _metaSender);
 
@@ -50,7 +50,7 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
         return true;
     }
 
-    function increaseApprovalWithProof(address _spender, uint _addedValue, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool ok) {
+    function increaseApprovalWithProof(address _spender, uint _addedValue, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("increaseApprovalWithProof", _spender, _addedValue, _relayerFee, metaNonce[_metaSender]));
         require(metaSender == _metaSender);
 
@@ -63,7 +63,7 @@ contract MetaSenderPaysToken is ERC20Token, Meta {// Sender pays relayer fee
         return true;
     }
 
-    function decreaseApprovalWithProof(address _spender, uint _subtractedValue, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool ok) {
+    function decreaseApprovalWithProof(address _spender, uint _subtractedValue, uint8 v, bytes32 r, bytes32 s, uint _relayerFee, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("decreaseApprovalWithProof", _spender, _subtractedValue, _relayerFee, metaNonce[_metaSender]));
         require(metaSender == _metaSender);
 

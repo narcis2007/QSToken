@@ -489,7 +489,7 @@ contract('QSToken', async (accounts) => {
 
     });
 
-    describe('meta - transferFromWithProof - sender pays', function () {
+    describe('meta - approveWithProof - sender pays', function () {
 
         it(' should be able to relay approvals', async function () {
             let token = await deployTokenContract();
@@ -558,4 +558,88 @@ contract('QSToken', async (accounts) => {
 
     });
 
-});
+    describe('meta - increase/decreaseApprovalWithProof - sender pays', function () {
+
+        it(' should be able to relay increse/decrease approvals', async function () {
+            let token = await deployTokenContract();
+
+            const metaSenderAddress = '0xBd2e9CaF03B81e96eE27AD354c579E1310415F39';
+            const metaSenderPrivateKey = '43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46';
+
+            const amountApproved = 50;
+            const relayerFee = 10;
+            var metaNonce = 0;
+
+            const metaSenderBalance = SUPPLY / 2;
+            await token.transfer(metaSenderAddress, metaSenderBalance, {from: accounts[0]});
+
+            var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'string',
+                v: 'increaseApprovalWithProof'
+            }, {
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountApproved}, {t: 'uint', v: relayerFee}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            await token.increaseApprovalWithProof(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), relayerFee);
+            assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - relayerFee);
+            assert.equal((await token.allowance(metaSenderAddress, accounts[1])).toNumber(), amountApproved);
+
+            //--------------------------
+            metaNonce++;
+            const amountDecreased = 30;
+
+            messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'string',
+                v: 'decreaseApprovalWithProof'
+            }, {
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountDecreased}, {t: 'uint', v: relayerFee}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            await token.decreaseApprovalWithProof(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), 2 * relayerFee);
+            assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - 2 * relayerFee);
+            assert.equal((await token.allowance(metaSenderAddress, accounts[1])).toNumber(), amountApproved - amountDecreased);
+
+            //--------------------------
+            metaNonce++;
+
+            messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'string',
+                v: 'decreaseApprovalWithProof'
+            }, {
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountDecreased}, {t: 'uint', v: relayerFee}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            await token.decreaseApprovalWithProof(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), 3 * relayerFee);
+            assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - 3 * relayerFee);
+            assert.equal((await token.allowance(metaSenderAddress, accounts[1])).toNumber(), 0);
+
+        });
+    });
+})
