@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 contract Meta {
 
-    mapping(address => uint) metaNonce;
+    mapping(address => uint) metaNonce; // TODO: decide if we want the trnsactions to be more "asynchronous" by having a mapping of uit=>bool instead of uint
     mapping(address => uint) relayerFee; //TODO: each receiver to have a list of whitelisted relayers to avoid stealing through fees; think of a fee limit scheme too(max fee set by the receiver)
 
 

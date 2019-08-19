@@ -231,7 +231,7 @@ contract('QSToken', async (accounts) => {
         });
     });
 
-    describe('meta - transferWithProof - sender pays', function () {
+    describe('meta - transferWithProofSPSP - sender pays', function () {
 
         it(' should be able to relay multiple transfers', async function () {
             let token = await deployTokenContract();
@@ -246,7 +246,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                     t: 'string',
-                    v: 'transferWithProof'
+                    v: 'transferWithProofSP'
                 },
                 {
                     t: 'address',
@@ -259,7 +259,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.transferWithProofSP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee);
             assert.equal(await token.balanceOf(accounts[1]), amountSent);
@@ -271,7 +271,7 @@ contract('QSToken', async (accounts) => {
 
             messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'transferWithProof'
+                v: 'transferWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -283,7 +283,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.transferWithProofSP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee * 2);
             assert.equal(await token.balanceOf(accounts[1]), amountSent * 2);
@@ -306,7 +306,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'transferWithProof'
+                v: 'transferWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -318,13 +318,13 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.transferWithProofSP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee);
             assert.equal(await token.balanceOf(accounts[1]), amountSent);
             assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - (amountSent + relayerFee));
 
-            await expectThrow(token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]}));
+            await expectThrow(token.transferWithProofSP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]}));
 
         });
 
@@ -341,7 +341,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'transferWithProof'
+                v: 'transferWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -353,7 +353,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await expectThrow(token.transferWithProof(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex').replace("5", "4"), relayerFee, metaSenderAddress, {from: accounts[3]}));
+            await expectThrow(token.transferWithProofSP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex').replace("5", "4"), relayerFee, metaSenderAddress, {from: accounts[3]}));
 
         });
 
@@ -370,7 +370,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'transferWithProof'
+                v: 'transferWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -382,7 +382,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await expectThrow(token.transferWithProof(accounts[1], metaSenderBalance + 1, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex').replace("5", "4"), relayerFee, metaSenderAddress, {from: accounts[3]}));
+            await expectThrow(token.transferWithProofSP(accounts[1], metaSenderBalance + 1, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex').replace("5", "4"), relayerFee, metaSenderAddress, {from: accounts[3]}));
 
         });
 
@@ -390,7 +390,7 @@ contract('QSToken', async (accounts) => {
 
     //TODO: check with a bad meta sender address
 
-    describe('meta - transferFromWithProof - sender pays', function () {
+    describe('meta - transferFromWithProofSP - sender pays', function () {
 
         it(' should be able to relay multiple transfers in limit', async function () {
             let token = await deployTokenContract();
@@ -410,7 +410,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                     t: 'string',
-                    v: 'transferFromWithProof'
+                    v: 'transferFromWithProofSP'
                 }, {
                     t: 'address',
                     v: accounts[0]
@@ -426,7 +426,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.transferFromWithProof(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.transferFromWithProofSP(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee);
             assert.equal(await token.balanceOf(accounts[1]), amountSent);
@@ -439,7 +439,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                     t: 'string',
-                    v: 'transferFromWithProof'
+                    v: 'transferFromWithProofSP'
                 }, {
                     t: 'address',
                     v: accounts[0]
@@ -455,7 +455,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.transferFromWithProof(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.transferFromWithProofSP(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), 2 * relayerFee);
             assert.equal(await token.balanceOf(accounts[1]), 2 * amountSent);
@@ -466,7 +466,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                     t: 'string',
-                    v: 'transferFromWithProof'
+                    v: 'transferFromWithProofSP'
                 }, {
                     t: 'address',
                     v: accounts[0]
@@ -482,14 +482,14 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await expectThrow(token.transferFromWithProof(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]}));
+            await expectThrow(token.transferFromWithProofSP(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]}));
 
 
         });
 
     });
 
-    describe('meta - approveWithProof - sender pays', function () {
+    describe('meta - approveWithProofSP - sender pays', function () {
 
         it(' should be able to relay approvals', async function () {
             let token = await deployTokenContract();
@@ -506,7 +506,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'approveWithProof'
+                v: 'approveWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -518,7 +518,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.approveWithProof(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.approveWithProofSP(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee);
             assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - relayerFee);
@@ -541,7 +541,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'approveWithProof'
+                v: 'approveWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -553,12 +553,12 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await expectThrow(token.approveWithProof(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, accounts[4], {from: accounts[3]}));
+            await expectThrow(token.approveWithProofSP(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, accounts[4], {from: accounts[3]}));
         });
 
     });
 
-    describe('meta - increase/decreaseApprovalWithProof - sender pays', function () {
+    describe('meta - increase/decreaseApprovalWithProofSP - sender pays', function () {
 
         it(' should be able to relay increse/decrease approvals', async function () {
             let token = await deployTokenContract();
@@ -575,7 +575,7 @@ contract('QSToken', async (accounts) => {
 
             var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'increaseApprovalWithProof'
+                v: 'increaseApprovalWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -587,7 +587,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.increaseApprovalWithProof(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.increaseApprovalWithProofSP(accounts[1], amountApproved, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), relayerFee);
             assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - relayerFee);
@@ -599,7 +599,7 @@ contract('QSToken', async (accounts) => {
 
             messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'decreaseApprovalWithProof'
+                v: 'decreaseApprovalWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -611,7 +611,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.decreaseApprovalWithProof(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.decreaseApprovalWithProofSP(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), 2 * relayerFee);
             assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - 2 * relayerFee);
@@ -622,7 +622,7 @@ contract('QSToken', async (accounts) => {
 
             messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
                 t: 'string',
-                v: 'decreaseApprovalWithProof'
+                v: 'decreaseApprovalWithProofSP'
             }, {
                 t: 'address',
                 v: accounts[1]
@@ -634,7 +634,7 @@ contract('QSToken', async (accounts) => {
             var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
             var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
 
-            await token.decreaseApprovalWithProof(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
+            await token.decreaseApprovalWithProofSP(accounts[1], amountDecreased, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), relayerFee, metaSenderAddress, {from: accounts[3]});
 
             assert.equal(await token.balanceOf(accounts[3]), 3 * relayerFee);
             assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - 3 * relayerFee);
