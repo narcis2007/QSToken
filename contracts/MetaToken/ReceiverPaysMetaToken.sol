@@ -26,6 +26,7 @@ contract ReceiverPaysMetaToken is ERC20Token, MetaToken {
         return true;
     }
 
+    //Is this needed? Gotta discuss
     function transferFromWithProofRP(address _from, address _to, uint _value, uint8 v, bytes32 r, bytes32 s, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("transferFromWithProofRP", _from, _to, _value, metaNonce[_metaSender]));
 
