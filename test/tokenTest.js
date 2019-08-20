@@ -677,8 +677,82 @@ contract('QSToken', async (accounts) => {
             assert.equal((await token.getMaxAcceptedFee(metaSenderAddress)).toNumber(), maxAcceptedFee);
         });
 
-        it(' should be able to transfer with proof', async function () {
+        it('should be able to transfer with proof', async function () {
+            let token = await deployTokenContract();
 
+            const metaSenderAddress = '0xBd2e9CaF03B81e96eE27AD354c579E1310415F39';
+            const metaSenderPrivateKey = '43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46';
+
+            const relayerFee = 10;
+            var metaNonce = 0;
+            const maxAcceptedFee = 11;
+            const amountSent = 50;
+
+            const metaSenderBalance = SUPPLY / 2;
+            await token.setMaxAcceptedFee(maxAcceptedFee, {from: accounts[1]});
+            await token.setRelayerFee(relayerFee, {from: accounts[3]});
+            await token.transfer(metaSenderAddress, metaSenderBalance, {from: accounts[0]});
+
+            var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'string',
+                v: 'transferWithProofRP'
+            }, {
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountSent}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            await token.transferWithProofRP(accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), relayerFee);
+            assert.equal(await token.balanceOf(metaSenderAddress), metaSenderBalance - amountSent);
+            assert.equal(await token.balanceOf(accounts[1]), amountSent - relayerFee);
+        });
+
+        it('should be able to transfer from account with proof', async function () {
+            let token = await deployTokenContract();
+
+            const metaSenderAddress = '0xBd2e9CaF03B81e96eE27AD354c579E1310415F39';
+            const metaSenderPrivateKey = '43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae4b1311b9f5dcc46';
+
+            var metaNonce = 0;
+            const maxAcceptedFee = 11;
+            const amountSent = 50;
+            const amountApproved = 100;
+            const relayerFee = 10;
+
+            await token.setMaxAcceptedFee(maxAcceptedFee, {from: accounts[1]});
+            await token.setRelayerFee(relayerFee, {from: accounts[3]});
+
+            await token.approve(metaSenderAddress, amountApproved, {from: accounts[0]});
+
+            var messageToSign = EthUtil.toBuffer(myWeb3.utils.soliditySha3({
+                t: 'string',
+                v: 'transferFromWithProofRP'
+            },{
+                t: 'address',
+                v: accounts[0]
+            }, {
+                t: 'address',
+                v: accounts[1]
+            }, {t: 'uint', v: amountSent}, {
+                t: 'uint',
+                v: metaNonce
+            }));
+
+            var msgHash = EthUtil.hashPersonalMessage(new Buffer(messageToSign));
+            var signature = EthUtil.ecsign(msgHash, new Buffer(metaSenderPrivateKey, 'hex'));
+
+            await token.transferFromWithProofRP(accounts[0], accounts[1], amountSent, signature.v.toString(), '0x' + signature.r.toString('hex'), '0x' + signature.s.toString('hex'), metaSenderAddress, {from: accounts[3]});
+
+            assert.equal(await token.balanceOf(accounts[3]), relayerFee);
+            assert.equal(await token.balanceOf(accounts[0]), SUPPLY - amountSent);
+            assert.equal(await token.balanceOf(accounts[1]), amountSent - relayerFee);
         });
 
     });

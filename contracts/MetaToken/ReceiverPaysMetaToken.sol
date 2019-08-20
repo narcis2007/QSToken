@@ -16,7 +16,7 @@ contract ReceiverPaysMetaToken is ERC20Token, MetaToken {
 
         require(metaSender == _metaSender);
         require(_relayerFee < _value); // to mitigate the security issue when a relayer sends micropayments to drain tokens from a receiver
-        require(_relayerFee <= maxAcceptedFee[metaSender] );
+        require(_relayerFee <= maxAcceptedFee[_to] );
 
         _transfer(metaSender, _to, _value);
         _transfer(_to, msg.sender, _relayerFee);
@@ -33,7 +33,7 @@ contract ReceiverPaysMetaToken is ERC20Token, MetaToken {
 
         require(metaSender == _metaSender);
         require(_relayerFee < _value); // to mitigate the security issue when a relayer sends micropayments to drain tokens from a receiver
-        require(_relayerFee <= maxAcceptedFee[metaSender] );
+        require(_relayerFee <= maxAcceptedFee[_to] );
 
         uint _allowance = allowed[_from][metaSender];
         allowed[_from][metaSender] = safeSub(_allowance, _value);
