@@ -7,7 +7,7 @@ contract ReceiverPaysMetaToken is ERC20Token, MetaToken {
 
     mapping(address => uint) relayerFee;
     mapping(address => uint) maxAcceptedFee; // the receiver can control the fees only through this to not let a relayer steal tokens through this or set a fee too high
-
+//TODO: think of a better way to agree on the fees
     //maybe send the proof that the merchant agreed with the fee? -> would make this less efficient though
     function transferWithProofRP(address _to, uint _value, uint8 v, bytes32 r, bytes32 s, address _metaSender) public returns (bool) {
         address metaSender = getAddressFromSignature(v, r, s, abi.encodePacked("transferWithProofRP", _to, _value, metaNonce[_metaSender]));
